@@ -3,7 +3,7 @@ import type * as OrcidId from './OrcidId.js'
 import * as Users from './Users.js'
 import * as Zenodo from './Zenodo.js'
 
-const processUser = (orcidId: OrcidId.OrcidId) =>
+const processUser = ({ orcidId }: { orcidId: OrcidId.OrcidId; accessToken: string }) =>
   Effect.gen(function* (_) {
     yield* _(Effect.logInfo('Processing user'))
 
