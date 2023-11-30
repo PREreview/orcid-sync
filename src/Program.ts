@@ -5,4 +5,4 @@ import * as Users from './Users.js'
 const processUser = (orcidId: OrcidId.OrcidId) =>
   Effect.logInfo('Processing user').pipe(Effect.annotateLogs('orcidId', orcidId))
 
-export const program = Users.getUsers.pipe(Stream.runForEach(processUser))
+export const program = Users.getUsers.pipe(Stream.runForEach(processUser)).pipe(Effect.scoped)
