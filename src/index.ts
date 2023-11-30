@@ -1,3 +1,4 @@
+import { HttpClient } from '@effect/platform'
 import { Effect, Layer } from 'effect'
 import IoRedis from 'ioredis'
 import { program } from './Program.js'
@@ -14,6 +15,8 @@ const RedisLive = Layer.effect(
   }),
 )
 
-const runnable = Effect.provide(program, RedisLive).pipe(Effect.scoped)
+const ProgramLive = Layer.mergeAll(HttpClient.client.layer, RedisLive)
+
+const runnable = Effect.provide(program, ProgramLive).pipe(Effect.scoped)
 
 await Effect.runPromise(runnable)
