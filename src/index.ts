@@ -1,3 +1,4 @@
 import { Effect } from 'effect'
+import { program } from './Program.js'
 
-await Effect.runPromise(Effect.logInfo('hello'))
+await Effect.runPromise(program)
