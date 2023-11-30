@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@effect/platform": "^0.31.2",
+    "@effect/platform-node": "^0.32.3",
     "@effect/schema": "^0.49.4",
     "doi-ts": "^0.1.7",
     "effect": "^2.0.0-next.56",
