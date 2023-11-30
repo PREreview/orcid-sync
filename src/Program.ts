@@ -38,15 +38,26 @@ const getPeerReviewsOnZenodoForOrcidId = flow(
       yield* _(Effect.logInfo('Found reviews on Zenodo').pipe(Effect.annotateLogs('total', reviews.total)))
     }),
   ),
+  Effect.map(reviews => reviews.hits),
 )
 const processUser = ({ orcidId, accessToken }: { orcidId: OrcidId.OrcidId; accessToken: string }) =>
   Effect.gen(function* (_) {
     yield* _(Effect.logInfo('Processing user'))
 
-    yield* _(
+    const [zenodoReviews, orcidReviews] = yield* _(
       Effect.all([getPeerReviewsOnZenodoForOrcidId(orcidId), getPeerReviewsDoisForOrcidId(orcidId)], {
         concurrency: 'inherit',
       }),
+    )
+
+    yield* _(
+      Effect.forEach(
+        ReadonlyArray.difference(
+          ReadonlyArray.map(zenodoReviews, review => review.doi),
+          orcidReviews,
+        ),
+        doi => Effect.logWarning('Need to add review').pipe(Effect.annotateLogs('doi', doi)),
+      ),
     )
   }).pipe(
     Effect.annotateLogs('orcidId', orcidId),
