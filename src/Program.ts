@@ -1,4 +1,6 @@
-import { Effect, ReadonlyArray, Stream, flow } from 'effect'
+import { Effect, Match, ReadonlyArray, Stream, flow } from 'effect'
+import * as Decision from './Decision.js'
+import type * as Doi from './Doi.js'
 import * as Orcid from './Orcid.js'
 import type * as OrcidId from './OrcidId.js'
 import * as Users from './Users.js'
@@ -38,25 +40,55 @@ const getPeerReviewsOnZenodoForOrcidId = flow(
       yield* _(Effect.logInfo('Found reviews on Zenodo').pipe(Effect.annotateLogs('total', reviews.total)))
     }),
   ),
-  Effect.map(reviews => reviews.hits),
+  Effect.map(reviews => ReadonlyArray.map(reviews.hits, review => review.doi)),
 )
+
+const makeDecisions = ({
+  orcidId,
+  zenodoReviews,
+  orcidReviews,
+}: {
+  orcidId: OrcidId.OrcidId
+  zenodoReviews: ReadonlyArray<Doi.Doi>
+  orcidReviews: ReadonlyArray<Doi.Doi>
+}) =>
+  ReadonlyArray.union(
+    ReadonlyArray.difference(zenodoReviews, orcidReviews).map(doi => Decision.AddReviewToProfile({ orcidId, doi })),
+    ReadonlyArray.difference(orcidReviews, zenodoReviews).map(doi =>
+      Decision.RemoveReviewFromProfile({ orcidId, doi }),
+    ),
+  )
+
 const processUser = ({ orcidId, accessToken }: { orcidId: OrcidId.OrcidId; accessToken: string }) =>
   Effect.gen(function* (_) {
     yield* _(Effect.logInfo('Processing user'))
 
-    const [zenodoReviews, orcidReviews] = yield* _(
-      Effect.all([getPeerReviewsOnZenodoForOrcidId(orcidId), getPeerReviewsDoisForOrcidId(orcidId)], {
-        concurrency: 'inherit',
-      }),
+    const decisions = yield* _(
+      Effect.all(
+        {
+          zenodoReviews: getPeerReviewsOnZenodoForOrcidId(orcidId),
+          orcidReviews: getPeerReviewsDoisForOrcidId(orcidId),
+        },
+        { concurrency: 'inherit' },
+      ).pipe(
+        Effect.let('orcidId', () => orcidId),
+        Effect.map(makeDecisions),
+      ),
     )
+
+    if (ReadonlyArray.isEmptyArray(decisions)) {
+      return yield* _(Effect.logInfo('Nothing to do'))
+    }
 
     yield* _(
       Effect.forEach(
-        ReadonlyArray.difference(
-          ReadonlyArray.map(zenodoReviews, review => review.doi),
-          orcidReviews,
-        ),
-        doi => Effect.logWarning('Need to add review').pipe(Effect.annotateLogs('doi', doi)),
+        decisions,
+        Match.valueTags({
+          AddReviewToProfile: decision =>
+            Effect.logWarning('Need to add review').pipe(Effect.annotateLogs('doi', decision.doi)),
+          RemoveReviewFromProfile: decision =>
+            Effect.logWarning('Need to remove review').pipe(Effect.annotateLogs('doi', decision.doi)),
+        }),
       ),
     )
   }).pipe(
