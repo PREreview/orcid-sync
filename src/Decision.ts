@@ -4,7 +4,7 @@ import type { User } from './Users.js'
 
 export type Decision = Data.TaggedEnum<{
   AddReviewToProfile: { user: User; doi: Doi }
-  RemoveReviewFromProfile: { user: User; doi: Doi }
+  RemoveReviewFromProfile: { user: User; id: number }
 }>
 
 export const { AddReviewToProfile, RemoveReviewFromProfile } = Data.taggedEnum<Decision>()

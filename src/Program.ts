@@ -70,14 +70,12 @@ const makeDecisions = ({
         doi,
       }),
     ),
-    ReadonlyArray.difference(
-      orcidReviews.map(review => review.doi),
-      zenodoReviews,
-    ).map(doi =>
-      Decision.RemoveReviewFromProfile({
-        user,
-        doi,
-      }),
+    ReadonlyArray.filter(orcidReviews, orcidReview => !ReadonlyArray.contains(zenodoReviews, orcidReview.doi)).map(
+      orcidReview =>
+        Decision.RemoveReviewFromProfile({
+          user,
+          id: orcidReview.id,
+        }),
     ),
   )
 
@@ -109,7 +107,7 @@ const processUser = (user: Users.User) =>
           AddReviewToProfile: decision =>
             Effect.logWarning('Need to add review').pipe(Effect.annotateLogs('doi', decision.doi)),
           RemoveReviewFromProfile: decision =>
-            Effect.logWarning('Need to remove review').pipe(Effect.annotateLogs('doi', decision.doi)),
+            Effect.logWarning('Need to remove review').pipe(Effect.annotateLogs('id', decision.id)),
         }),
         { concurrency: 'inherit' },
       ),
