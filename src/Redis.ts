@@ -1,6 +1,6 @@
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect, type ReadonlyArray, Stream } from 'effect'
-import type IoRedis from 'ioredis'
+import { Context, Data, Effect, Layer, type ReadonlyArray, Stream } from 'effect'
+import IoRedis from 'ioredis'
 
 export type Redis = IoRedis.Redis
 
@@ -9,6 +9,11 @@ export const Redis = Context.Tag<Redis>('IoRedis/Redis')
 export class RedisError extends Data.TaggedError('RedisError')<{
   readonly error: unknown
 }> {}
+
+export const layer: Layer.Layer<never, never, Redis> = Layer.scoped(
+  Redis,
+  Effect.acquireRelease(Effect.succeed(new IoRedis.Redis()), redis => Effect.sync(() => redis.disconnect())),
+)
 
 export const scanStream = (
   options: Parameters<Redis['scanStream']>[0],
