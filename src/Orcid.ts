@@ -50,6 +50,11 @@ const PeerReviewsSchema = Schema.struct({
               }),
             ),
           }),
+          'peer-review-summary': Schema.tuple(
+            Schema.struct({
+              'put-code': Schema.number,
+            }),
+          ),
         }),
       ),
     }),

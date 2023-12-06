@@ -5,7 +5,7 @@ import * as Orcid from './Orcid.js'
 import * as Users from './Users.js'
 import * as Zenodo from './Zenodo.js'
 
-const getPeerReviewsDoisForOrcidId = flow(
+const getPeerReviewsForOrcidId = flow(
   (user: Users.User) => Orcid.getPeerReviewsForOrcidId(user.orcidId),
   Effect.flatMap(
     ReadonlyArray.findFirst(
@@ -15,7 +15,11 @@ const getPeerReviewsDoisForOrcidId = flow(
   Effect.map(group =>
     ReadonlyArray.map(
       group['peer-review-group'],
-      peerReview => peerReview['external-ids']['external-id'][0]['external-id-value'],
+      peerReview =>
+        ({
+          doi: peerReview['external-ids']['external-id'][0]['external-id-value'],
+          id: peerReview['peer-review-summary'][0]['put-code'],
+        }) satisfies OrcidReview,
     ),
   ),
   Effect.catchTag('NoSuchElementException', () => Effect.succeed([])),
@@ -42,6 +46,11 @@ const getPeerReviewsOnZenodoForOrcidId = flow(
   Effect.map(reviews => ReadonlyArray.map(reviews.hits, review => review.doi)),
 )
 
+interface OrcidReview {
+  readonly doi: Doi.Doi
+  readonly id: number
+}
+
 const makeDecisions = ({
   user,
   zenodoReviews,
@@ -49,11 +58,27 @@ const makeDecisions = ({
 }: {
   user: Users.User
   zenodoReviews: ReadonlyArray<Doi.Doi>
-  orcidReviews: ReadonlyArray<Doi.Doi>
+  orcidReviews: ReadonlyArray<OrcidReview>
 }) =>
   ReadonlyArray.union(
-    ReadonlyArray.difference(zenodoReviews, orcidReviews).map(doi => Decision.AddReviewToProfile({ user, doi })),
-    ReadonlyArray.difference(orcidReviews, zenodoReviews).map(doi => Decision.RemoveReviewFromProfile({ user, doi })),
+    ReadonlyArray.difference(
+      zenodoReviews,
+      orcidReviews.map(review => review.doi),
+    ).map(doi =>
+      Decision.AddReviewToProfile({
+        user,
+        doi,
+      }),
+    ),
+    ReadonlyArray.difference(
+      orcidReviews.map(review => review.doi),
+      zenodoReviews,
+    ).map(doi =>
+      Decision.RemoveReviewFromProfile({
+        user,
+        doi,
+      }),
+    ),
   )
 
 const processUser = (user: Users.User) =>
@@ -64,7 +89,7 @@ const processUser = (user: Users.User) =>
       Effect.all(
         {
           zenodoReviews: getPeerReviewsOnZenodoForOrcidId(user),
-          orcidReviews: getPeerReviewsDoisForOrcidId(user),
+          orcidReviews: getPeerReviewsForOrcidId(user),
         },
         { concurrency: 'inherit' },
       ).pipe(
