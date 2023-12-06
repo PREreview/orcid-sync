@@ -33,6 +33,6 @@ const RedisLive = Redis.layer
 
 const ProgramLive = Layer.mergeAll(HttpClientLive, RedisLive)
 
-const runnable = Effect.provide(program, ProgramLive).pipe(Effect.scoped, Logger.withMinimumLogLevel(LogLevel.Debug))
+const runnable = Effect.provide(program, ProgramLive).pipe(Logger.withMinimumLogLevel(LogLevel.Debug))
 
 await Effect.runPromise(runnable)
