@@ -7,4 +7,6 @@ export type Decision = Data.TaggedEnum<{
   RemoveReviewFromProfile: { user: User; id: number }
 }>
 
+export type RemoveReviewFromProfile = Extract<Decision, { _tag: 'RemoveReviewFromProfile' }>
+
 export const { AddReviewToProfile, RemoveReviewFromProfile } = Data.taggedEnum<Decision>()

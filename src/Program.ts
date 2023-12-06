@@ -106,8 +106,12 @@ const processUser = (user: Users.User) =>
         Match.valueTags({
           AddReviewToProfile: decision =>
             Effect.logWarning('Need to add review').pipe(Effect.annotateLogs('doi', decision.doi)),
-          RemoveReviewFromProfile: decision =>
-            Effect.logWarning('Need to remove review').pipe(Effect.annotateLogs('id', decision.id)),
+          RemoveReviewFromProfile: ({ user, id }) =>
+            Effect.gen(function* (_) {
+              yield* _(Effect.logWarning('Removing review').pipe(Effect.annotateLogs('id', id)))
+
+              yield* _(Orcid.deletePeerReview({ orcid: user.orcidId, id }))
+            }),
         }),
         { concurrency: 'inherit' },
       ),

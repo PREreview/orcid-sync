@@ -13,6 +13,7 @@ export const OrcidAccessToken = Context.Tag<OrcidAccessToken>()
 type PeerReviews = Schema.Schema.To<typeof PeerReviewsSchema>['group']
 
 type GetPeerReviewsForOrcidIdError = HttpClient.error.HttpClientError | ParseResult.ParseError
+type DeletePeerReviewError = HttpClient.error.HttpClientError
 
 export const getPeerReviewsForOrcidId = (
   id: OrcidId,
@@ -27,6 +28,19 @@ export const getPeerReviewsForOrcidId = (
     )
 
     return response.group
+  })
+
+export const deletePeerReview = ({
+  orcid,
+  id,
+}: {
+  orcid: OrcidId
+  id: number
+}): Effect.Effect<HttpClient.client.Client.Default | OrcidAccessToken, DeletePeerReviewError, void> =>
+  Effect.gen(function* (_) {
+    const client = yield* _(orcidClient)
+
+    yield* _(HttpClient.request.del(`${orcid}/peer-review/${id}`), client)
   })
 
 const PeerReviewsSchema = Schema.struct({
