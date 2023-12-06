@@ -78,14 +78,17 @@ const processUser = (user: Users.User) =>
     }
 
     yield* _(
-      Effect.forEach(
-        decisions,
-        Match.valueTags({
-          AddReviewToProfile: decision =>
-            Effect.logWarning('Need to add review').pipe(Effect.annotateLogs('doi', decision.doi)),
-          RemoveReviewFromProfile: decision =>
-            Effect.logWarning('Need to remove review').pipe(Effect.annotateLogs('doi', decision.doi)),
-        }),
+      Effect.all(
+        ReadonlyArray.map(
+          decisions,
+          Match.valueTags({
+            AddReviewToProfile: decision =>
+              Effect.logWarning('Need to add review').pipe(Effect.annotateLogs('doi', decision.doi)),
+            RemoveReviewFromProfile: decision =>
+              Effect.logWarning('Need to remove review').pipe(Effect.annotateLogs('doi', decision.doi)),
+          }),
+        ),
+        { concurrency: 'inherit' },
       ),
     )
   }).pipe(
