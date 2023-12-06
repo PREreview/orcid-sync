@@ -1,5 +1,5 @@
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect, Layer, type ReadonlyArray, Stream } from 'effect'
+import { Context, Data, Effect, Layer, Stream } from 'effect'
 import IoRedis from 'ioredis'
 
 export type Redis = IoRedis.Redis
