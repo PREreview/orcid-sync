@@ -43,8 +43,12 @@ const getPeerReviewsOnZenodoForOrcidId = flow(
       yield* _(Effect.logInfo('Found reviews on Zenodo').pipe(Effect.annotateLogs('total', reviews.total)))
     }),
   ),
-  Effect.map(reviews => ReadonlyArray.map(reviews.hits, review => review.doi)),
+  Effect.map(reviews => ReadonlyArray.map(reviews.hits, review => ({ doi: review.doi }) satisfies ZenodoReview)),
 )
+
+interface ZenodoReview {
+  readonly doi: Doi.Doi
+}
 
 interface OrcidReview {
   readonly doi: Doi.Doi
@@ -57,25 +61,35 @@ const makeDecisions = ({
   orcidReviews,
 }: {
   user: Users.User
-  zenodoReviews: ReadonlyArray<Doi.Doi>
+  zenodoReviews: ReadonlyArray<ZenodoReview>
   orcidReviews: ReadonlyArray<OrcidReview>
 }) =>
   ReadonlyArray.union(
-    ReadonlyArray.difference(
+    ReadonlyArray.filter(
       zenodoReviews,
-      orcidReviews.map(review => review.doi),
-    ).map(doi =>
+      zenodoReview =>
+        !ReadonlyArray.contains(
+          orcidReviews.map(review => review.doi),
+          zenodoReview.doi,
+        ),
+    ).map(zenodoReview =>
       Decision.AddReviewToProfile({
         user,
-        doi,
+        doi: zenodoReview.doi,
       }),
     ),
-    ReadonlyArray.filter(orcidReviews, orcidReview => !ReadonlyArray.contains(zenodoReviews, orcidReview.doi)).map(
+    ReadonlyArray.filter(
+      orcidReviews,
       orcidReview =>
-        Decision.RemoveReviewFromProfile({
-          user,
-          id: orcidReview.id,
-        }),
+        !ReadonlyArray.contains(
+          zenodoReviews.map(review => review.doi),
+          orcidReview.doi,
+        ),
+    ).map(orcidReview =>
+      Decision.RemoveReviewFromProfile({
+        user,
+        id: orcidReview.id,
+      }),
     ),
   )
 

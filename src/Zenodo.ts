@@ -3,6 +3,8 @@ import { type ParseResult, Schema } from '@effect/schema'
 import { Effect, type ReadonlyRecord } from 'effect'
 import { DoiSchema } from './Doi.js'
 import type * as OrcidId from './OrcidId.js'
+import * as Temporal from './Temporal.js'
+import * as Url from './Url.js'
 
 type Records = Schema.Schema.To<typeof RecordsSchema>['hits']
 
@@ -38,6 +40,23 @@ const RecordsSchema = Schema.struct({
     hits: Schema.array(
       Schema.struct({
         doi: DoiSchema,
+        metadata: Schema.struct({
+          publication_date: Temporal.PlainDataFromStringSchema(Schema.string),
+          related_identifiers: Schema.array(
+            Schema.union(
+              Schema.struct({
+                identifier: DoiSchema,
+                relation: Schema.string,
+                scheme: Schema.literal('doi'),
+              }),
+              Schema.struct({
+                identifier: Url.UrlFromStringSchema(Schema.string),
+                relation: Schema.string,
+                scheme: Schema.literal('url'),
+              }),
+            ),
+          ),
+        }),
       }),
     ),
     total: Schema.nonNegative()(Schema.number),
