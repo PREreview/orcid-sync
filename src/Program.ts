@@ -1,7 +1,9 @@
-import { Effect, Match, ReadonlyArray, Stream, flow } from 'effect'
+import { Effect, Match, Option, ReadonlyArray, Stream, flow } from 'effect'
 import * as Decision from './Decision.js'
-import type * as Doi from './Doi.js'
+import * as Doi from './Doi.js'
 import * as Orcid from './Orcid.js'
+import type * as OrcidId from './OrcidId.js'
+import type * as Temporal from './Temporal.js'
 import * as Users from './Users.js'
 import * as Zenodo from './Zenodo.js'
 
@@ -33,6 +35,38 @@ const getPeerReviewsForOrcidId = flow(
   ),
 )
 
+const addPeerReview = ({ orcid, review }: { orcid: OrcidId.OrcidId; review: ZenodoReview }) =>
+  Orcid.addPeerReviewToOrcidId({
+    id: orcid,
+    peerReview: {
+      'reviewer-role': 'reviewer',
+      'review-identifiers': {
+        'external-id': {
+          'external-id-type': 'doi',
+          'external-id-value': review.doi,
+          'external-id-relationship': 'self',
+        },
+      },
+      'review-url': new URL(review.doi.replace('10.5072/zenodo.', 'https://prereview.org/reviews/')),
+      'review-type': 'review',
+      'review-completion-date': review.publicationDate,
+      'review-group-id': 'orcid-generated:prereview',
+      'subject-external-identifier': {
+        'external-id-type': 'doi',
+        'external-id-value': review.preprintDoi,
+        'external-id-relationship': 'self',
+      },
+      'subject-url': Doi.toUrl(review.preprintDoi),
+      'convening-organization': {
+        name: 'PREreview',
+        address: {
+          city: 'Portland',
+          country: 'US',
+        },
+      },
+    },
+  })
+
 const getPeerReviewsOnZenodoForOrcidId = flow(
   (user: Users.User) => Zenodo.getReviewsByOrcidId(user.orcidId),
   Effect.tap(reviews =>
@@ -43,11 +77,30 @@ const getPeerReviewsOnZenodoForOrcidId = flow(
       yield* _(Effect.logInfo('Found reviews on Zenodo').pipe(Effect.annotateLogs('total', reviews.total)))
     }),
   ),
-  Effect.map(reviews => ReadonlyArray.map(reviews.hits, review => ({ doi: review.doi }) satisfies ZenodoReview)),
+  Effect.map(reviews =>
+    ReadonlyArray.map(
+      reviews.hits,
+      review =>
+        ({
+          doi: review.doi,
+          preprintDoi: ReadonlyArray.findFirst(
+            review.metadata.related_identifiers,
+            relatedIdentifier => relatedIdentifier.relation === 'reviews' && relatedIdentifier.scheme === 'doi',
+          ).pipe(
+            Option.map(relatedIdentifier => relatedIdentifier.identifier),
+            Option.filter(Doi.isDoi),
+            Option.getOrThrow,
+          ),
+          publicationDate: review.metadata.publication_date,
+        }) satisfies ZenodoReview,
+    ),
+  ),
 )
 
 interface ZenodoReview {
   readonly doi: Doi.Doi
+  readonly preprintDoi: Doi.Doi
+  readonly publicationDate: Temporal.PlainDate
 }
 
 interface OrcidReview {
@@ -75,7 +128,7 @@ const makeDecisions = ({
     ).map(zenodoReview =>
       Decision.AddReviewToProfile({
         user,
-        doi: zenodoReview.doi,
+        ...zenodoReview,
       }),
     ),
     ReadonlyArray.filter(
@@ -119,7 +172,11 @@ const processUser = (user: Users.User) =>
         decisions,
         Match.valueTags({
           AddReviewToProfile: decision =>
-            Effect.logWarning('Need to add review').pipe(Effect.annotateLogs('doi', decision.doi)),
+            Effect.gen(function* (_) {
+              yield* _(Effect.logWarning('Adding review').pipe(Effect.annotateLogs('doi', decision.doi)))
+
+              yield* _(addPeerReview({ orcid: user.orcidId, review: decision }))
+            }),
           RemoveReviewFromProfile: ({ user, id }) =>
             Effect.gen(function* (_) {
               yield* _(Effect.logWarning('Removing review').pipe(Effect.annotateLogs('id', id)))

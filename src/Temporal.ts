@@ -1,6 +1,10 @@
 import { ParseResult, Schema } from '@effect/schema'
 import { Temporal } from '@js-temporal/polyfill'
 
+export type PlainDate = Temporal.PlainDate
+
+export const { PlainDate } = Temporal
+
 export const PlainDateSchema = Schema.instanceOf(Temporal.PlainDate)
 
 export const PlainDataFromStringSchema = <I, A extends string>(

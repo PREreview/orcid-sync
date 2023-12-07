@@ -3,6 +3,8 @@ import { type ParseResult, Schema } from '@effect/schema'
 import { Context, Effect } from 'effect'
 import { DoiSchema } from './Doi.js'
 import type { OrcidId } from './OrcidId.js'
+import * as Temporal from './Temporal.js'
+import * as Url from './Url.js'
 
 export interface OrcidAccessToken {
   readonly token: string
@@ -11,8 +13,10 @@ export interface OrcidAccessToken {
 export const OrcidAccessToken = Context.Tag<OrcidAccessToken>()
 
 type PeerReviews = Schema.Schema.To<typeof PeerReviewsSchema>['group']
+type NewPeerReview = Schema.Schema.To<typeof NewPeerReviewSchema>
 
 type GetPeerReviewsForOrcidIdError = HttpClient.error.HttpClientError | ParseResult.ParseError
+type AddPeerReviewToOrcidIdError = HttpClient.error.HttpClientError | HttpClient.body.BodyError
 type DeletePeerReviewError = HttpClient.error.HttpClientError
 
 export const getPeerReviewsForOrcidId = (
@@ -28,6 +32,23 @@ export const getPeerReviewsForOrcidId = (
     )
 
     return response.group
+  })
+
+export const addPeerReviewToOrcidId = ({
+  id,
+  peerReview,
+}: {
+  id: OrcidId
+  peerReview: NewPeerReview
+}): Effect.Effect<HttpClient.client.Client.Default | OrcidAccessToken, AddPeerReviewToOrcidIdError, void> =>
+  Effect.gen(function* (_) {
+    const client = yield* _(orcidClient)
+
+    yield* _(
+      HttpClient.request.post(`${id}/peer-review`, { headers: { 'Content-Type': 'application/vnd.orcid+json' } }),
+      HttpClient.request.schemaBody(NewPeerReviewSchema)(peerReview),
+      Effect.flatMap(client),
+    )
   })
 
 export const deletePeerReview = ({
@@ -73,6 +94,46 @@ const PeerReviewsSchema = Schema.struct({
       ),
     }),
   ),
+})
+
+const NewPeerReviewSchema = Schema.struct({
+  'reviewer-role': Schema.literal('reviewer'),
+  'review-identifiers': Schema.struct({
+    'external-id': Schema.struct({
+      'external-id-type': Schema.literal('doi'),
+      'external-id-value': DoiSchema,
+      'external-id-relationship': Schema.literal('self'),
+    }),
+  }),
+  'review-url': Url.UrlFromStringSchema(Schema.string),
+  'review-type': Schema.literal('review'),
+  'review-completion-date': Schema.transform(
+    Schema.struct({
+      year: Schema.numberFromString(Schema.string),
+      month: Schema.numberFromString(Schema.string),
+      day: Schema.numberFromString(Schema.string),
+    }),
+    Temporal.PlainDateSchema,
+    ({ year, month, day }) => Temporal.PlainDate.from({ year, month, day }),
+    date => ({ year: date.year, month: date.month, day: date.day }),
+  ),
+  'review-group-id': Schema.literal('orcid-generated:prereview'),
+  'subject-external-identifier': Schema.struct({
+    'external-id-type': Schema.literal('doi'),
+    'external-id-value': DoiSchema,
+    'external-id-relationship': Schema.literal('self'),
+  }),
+  'subject-container-name': Schema.optional(Schema.string),
+  'subject-type': Schema.optional(Schema.literal('other')),
+  'subject-name': Schema.optional(Schema.struct({ title: Schema.string })),
+  'subject-url': Url.UrlFromStringSchema(Schema.string),
+  'convening-organization': Schema.struct({
+    name: Schema.string,
+    address: Schema.struct({
+      city: Schema.string,
+      country: Schema.string,
+    }),
+  }),
 })
 
 const orcidClient = Effect.gen(function* (_) {
