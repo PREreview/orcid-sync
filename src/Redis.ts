@@ -1,5 +1,5 @@
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect, Layer, Runtime, Stream } from 'effect'
+import { Chunk, Context, Data, Effect, Layer, Runtime, Stream } from 'effect'
 import IoRedis from 'ioredis'
 
 export type Redis = IoRedis.Redis
@@ -36,14 +36,14 @@ export const layer: Layer.Layer<never, never, Redis> = Layer.scoped(
 
 export const scanStream = (
   options: Parameters<Redis['scanStream']>[0],
-): Stream.Stream<Redis, RedisError, ReadonlyArray<string>> =>
+): Stream.Stream<Redis, RedisError, Chunk.Chunk<string>> =>
   Stream.unwrap(
     Effect.gen(function* (_) {
       const redis = yield* _(Redis)
 
       return Stream.fromAsyncIterable(redis.scanStream(options), error => new RedisError({ error }))
     }),
-  ).pipe(Stream.map(Schema.decodeSync(Schema.array(Schema.string))))
+  ).pipe(Stream.map(Schema.decodeSync(Schema.array(Schema.string))), Stream.map(Chunk.fromIterable))
 
 export const get = (key: IoRedis.RedisKey): Effect.Effect<Redis, RedisError, string | null> =>
   Effect.gen(function* (_) {
