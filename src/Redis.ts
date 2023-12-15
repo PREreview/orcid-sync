@@ -1,5 +1,5 @@
 import { Schema } from '@effect/schema'
-import { Chunk, Context, Data, Effect, Layer, Runtime, Stream } from 'effect'
+import { Chunk, Context, Data, Effect, Layer, Option, Runtime, Stream } from 'effect'
 import IoRedis from 'ioredis'
 
 export type Redis = IoRedis.Redis
@@ -45,9 +45,9 @@ export const scanStream = (
     }),
   ).pipe(Stream.map(Schema.decodeSync(Schema.array(Schema.string))), Stream.map(Chunk.fromIterable))
 
-export const get = (key: IoRedis.RedisKey): Effect.Effect<Redis, RedisError, string | null> =>
+export const get = (key: IoRedis.RedisKey): Effect.Effect<Redis, RedisError, Option.Option<string>> =>
   Effect.gen(function* (_) {
     const redis = yield* _(Redis)
 
     return yield* _(Effect.tryPromise({ try: () => redis.get(key), catch: error => new RedisError({ error }) }))
-  })
+  }).pipe(Effect.map(Option.fromNullable))
