@@ -1,5 +1,5 @@
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect, Layer, Stream } from 'effect'
+import { Context, Data, Effect, Layer, Runtime, Stream } from 'effect'
 import IoRedis from 'ioredis'
 
 export type Redis = IoRedis.Redis
@@ -12,7 +12,26 @@ export class RedisError extends Data.TaggedError('RedisError')<{
 
 export const layer: Layer.Layer<never, never, Redis> = Layer.scoped(
   Redis,
-  Effect.acquireRelease(Effect.succeed(new IoRedis.Redis()), redis => Effect.sync(() => redis.disconnect())),
+  Effect.acquireRelease(
+    Effect.gen(function* (_) {
+      const runtime = yield* _(Effect.runtime<never>())
+
+      const redis = new IoRedis.Redis()
+
+      redis.on('connect', () => Runtime.runSync(runtime)(Effect.logDebug('Redis connected')))
+      redis.on('close', () => Runtime.runSync(runtime)(Effect.logDebug('Redis connection closed')))
+      redis.on('reconnecting', () => Runtime.runSync(runtime)(Effect.logInfo('Redis reconnecting')))
+      redis.removeAllListeners('error')
+      redis.on('error', (error: Error) =>
+        Runtime.runSync(runtime)(
+          Effect.logError('Redis connection error').pipe(Effect.annotateLogs({ error: error.message })),
+        ),
+      )
+
+      return redis
+    }),
+    redis => Effect.sync(() => redis.disconnect()),
+  ),
 )
 
 export const scanStream = (
