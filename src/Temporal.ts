@@ -5,14 +5,14 @@ export type PlainDate = Temporal.PlainDate
 
 export const { PlainDate } = Temporal
 
-export const PlainDateSchema = Schema.instanceOf(Temporal.PlainDate)
+export const PlainDateFromSelfSchema = Schema.instanceOf(Temporal.PlainDate)
 
-export const PlainDataFromStringSchema = <I, A extends string>(
+export const PlainDateFromStringSchema = <I, A extends string>(
   self: Schema.Schema<I, A>,
 ): Schema.Schema<I, Temporal.PlainDate> =>
   Schema.transformOrFail(
     self,
-    PlainDateSchema,
+    PlainDateFromSelfSchema,
     (s, _, ast) =>
       ParseResult.try({
         try: () => Temporal.PlainDate.from(s),
@@ -21,3 +21,5 @@ export const PlainDataFromStringSchema = <I, A extends string>(
     plainDate => ParseResult.success(plainDate.toString()),
     { strict: false },
   )
+
+export const PlainDateSchema = PlainDateFromStringSchema(Schema.string)

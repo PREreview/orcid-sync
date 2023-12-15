@@ -41,7 +41,7 @@ const RecordsSchema = Schema.struct({
       Schema.struct({
         doi: DoiSchema,
         metadata: Schema.struct({
-          publication_date: Temporal.PlainDataFromStringSchema(Schema.string),
+          publication_date: Temporal.PlainDateSchema,
           related_identifiers: Schema.array(
             Schema.union(
               Schema.struct({
@@ -50,7 +50,7 @@ const RecordsSchema = Schema.struct({
                 scheme: Schema.literal('doi'),
               }),
               Schema.struct({
-                identifier: Url.UrlFromStringSchema(Schema.string),
+                identifier: Url.UrlSchema,
                 relation: Schema.string,
                 scheme: Schema.literal('url'),
               }),

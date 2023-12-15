@@ -105,15 +105,15 @@ const NewPeerReviewSchema = Schema.struct({
       'external-id-relationship': Schema.literal('self'),
     }),
   }),
-  'review-url': Url.UrlFromStringSchema(Schema.string),
+  'review-url': Url.UrlSchema,
   'review-type': Schema.literal('review'),
   'review-completion-date': Schema.transform(
     Schema.struct({
-      year: Schema.numberFromString(Schema.string),
-      month: Schema.numberFromString(Schema.string),
-      day: Schema.numberFromString(Schema.string),
+      year: Schema.NumberFromString,
+      month: Schema.NumberFromString,
+      day: Schema.NumberFromString,
     }),
-    Temporal.PlainDateSchema,
+    Temporal.PlainDateFromSelfSchema,
     ({ year, month, day }) => Temporal.PlainDate.from({ year, month, day }),
     date => ({ year: date.year, month: date.month, day: date.day }),
   ),
@@ -126,7 +126,7 @@ const NewPeerReviewSchema = Schema.struct({
   'subject-container-name': Schema.optional(Schema.string),
   'subject-type': Schema.optional(Schema.literal('other')),
   'subject-name': Schema.optional(Schema.struct({ title: Schema.string })),
-  'subject-url': Url.UrlFromStringSchema(Schema.string),
+  'subject-url': Url.UrlSchema,
   'convening-organization': Schema.struct({
     name: Schema.string,
     address: Schema.struct({
