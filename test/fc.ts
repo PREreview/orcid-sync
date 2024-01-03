@@ -1,8 +1,18 @@
+import { Temporal } from '@js-temporal/polyfill'
 import doiRegex from 'doi-regex'
 import * as fc from 'fast-check'
 import type * as Doi from '../src/Doi.js'
 
 export * from 'fast-check'
+
+export const plainDate = (): fc.Arbitrary<Temporal.PlainDate> =>
+  fc
+    .record({
+      year: fc.integer({ min: -271820, max: 275759 }),
+      month: fc.integer({ min: 1, max: 12 }),
+      day: fc.integer({ min: 1, max: 31 }),
+    })
+    .map(args => Temporal.PlainDate.from(args))
 
 export const doi = (): fc.Arbitrary<Doi.Doi> =>
   fc
