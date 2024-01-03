@@ -1,10 +1,10 @@
-.PHONY: check fix format lint start typecheck
+.PHONY: check fix format lint start test typecheck
 
 node_modules: package.json package-lock.json
 	npm install
 	touch node_modules
 
-check: format lint typecheck
+check: format lint test typecheck
 
 fix: node_modules
 	npx eslint . --fix --max-warnings 0
@@ -18,6 +18,9 @@ lint: node_modules
 
 typecheck: node_modules
 	npx tsc --noEmit
+
+test: node_modules
+	npx vitest run
 
 start: node_modules
 	npx tsx src
