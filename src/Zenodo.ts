@@ -1,4 +1,4 @@
-import { HttpClient } from '@effect/platform'
+import { HttpClient } from '@effect/platform-node'
 import { type ParseResult, Schema } from '@effect/schema'
 import { Effect, type ReadonlyRecord } from 'effect'
 import { DoiSchema } from './Doi.js'
