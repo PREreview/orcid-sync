@@ -11,7 +11,7 @@ export const UrlFromStringSchema = <I, A extends string>(self: Schema.Schema<I, 
         try: () => new URL(s),
         catch: () => ParseResult.parseError([ParseResult.type(ast, s)]),
       }),
-    url => ParseResult.success(url.href),
+    url => ParseResult.succeed(url.href),
     { strict: false },
   )
 

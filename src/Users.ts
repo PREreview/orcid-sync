@@ -30,6 +30,6 @@ const OrcidTokenSchema = Schema.struct({ value: Schema.struct({ accessToken: Sch
 
 const getAccessToken = flow(
   (orcidId: OrcidId.OrcidId) => Effect.flatten(Redis.get(`orcid-token:${orcidId}`)),
-  Effect.flatMap(Schema.parse(Schema.ParseJson.pipe(Schema.compose(OrcidTokenSchema)))),
+  Effect.flatMap(Schema.parse(Schema.parseJson(OrcidTokenSchema))),
   Effect.map(({ value }) => value.accessToken),
 )
