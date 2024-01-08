@@ -1,5 +1,5 @@
 import { type ParseResult, Schema } from '@effect/schema'
-import { type Cause, Data, Effect, ReadonlyArray, type Scope, Stream, String, flow, identity } from 'effect'
+import { type Cause, Data, Effect, ReadonlyArray, Stream, String, flow, identity } from 'effect'
 import * as OrcidId from './OrcidId.js'
 import * as Redis from './Redis.js'
 
@@ -11,7 +11,7 @@ export interface User extends Data.Case {
 export const User = Data.case<User>()
 
 export const getUsers: Stream.Stream<
-  Redis.Redis | Scope.Scope,
+  Redis.Redis,
   Redis.RedisError | ParseResult.ParseError | Cause.NoSuchElementException,
   User
 > = Redis.scanStream({

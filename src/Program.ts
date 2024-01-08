@@ -192,4 +192,4 @@ const processUser = (user: Users.User) =>
     Effect.provideService(Orcid.OrcidAccessToken, { token: user.accessToken }),
   )
 
-export const program = Users.getUsers.pipe(Stream.runForEach(processUser)).pipe(Effect.scoped)
+export const program = Users.getUsers.pipe(Stream.runForEach(processUser))
