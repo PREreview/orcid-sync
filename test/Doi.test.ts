@@ -77,7 +77,7 @@ describe('Doi', () => {
 describe('DoiSchema', () => {
   describe('decoding', () => {
     test.prop([fc.doi()])('with a DOI', doi => {
-      const actual = Schema.parseSync(_.DoiSchema)(doi)
+      const actual = Schema.decodeUnknownSync(_.DoiSchema)(doi)
 
       expect(actual).toBe(doi)
     })
@@ -85,7 +85,7 @@ describe('DoiSchema', () => {
     test.prop([fc.fullUnicodeString().filter(s => !s.includes('/') || !s.startsWith('10.'))])(
       'with a non-DOI',
       value => {
-        const actual = Schema.parseEither(_.DoiSchema)(value)
+        const actual = Schema.decodeUnknownEither(_.DoiSchema)(value)
 
         expect(actual).toStrictEqual(Either.left(expect.anything()))
       },
