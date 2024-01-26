@@ -14,9 +14,9 @@ export const plainDate = (): fc.Arbitrary<Temporal.PlainDate> =>
     })
     .map(args => Temporal.PlainDate.from(args))
 
-export const doi = (): fc.Arbitrary<Doi.Doi> =>
+export const doi = ({ suffix }: { suffix?: fc.Arbitrary<string> } = {}): fc.Arbitrary<Doi.Doi> =>
   fc
-    .tuple(doiRegistrant(), fc.unicodeString({ minLength: 1 }))
+    .tuple(doiRegistrant(), suffix ?? fc.unicodeString({ minLength: 1 }))
     .map(([prefix, suffix]) => `10.${prefix}/${suffix}` as Doi.Doi)
     .filter(s => doiRegex({ exact: true }).test(s) && !s.endsWith('/.') && !s.endsWith('/..'))
 
