@@ -47,7 +47,7 @@ const addPeerReview = ({ orcid, review }: { orcid: OrcidId.OrcidId; review: Zeno
           'external-id-relationship': 'self',
         },
       },
-      'review-url': new URL(review.doi.replace('10.5072/zenodo.', 'https://prereview.org/reviews/')),
+      'review-url': new URL(review.doi.replace(/10\.(5072|5281)\/zenodo\./, 'https://prereview.org/reviews/')),
       'review-type': 'review',
       'review-completion-date': review.publicationDate,
       'review-group-id': 'orcid-generated:prereview',
