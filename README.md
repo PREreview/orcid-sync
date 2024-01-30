@@ -22,6 +22,8 @@ To build and run the script, execute:
 make start
 ```
 
+You have a `.env` file. This file contains environment variables controlling specific behaviours, including credentials for accessing external services.
+
 [gnu make]: https://www.gnu.org/software/make/
 [node.js]: https://nodejs.org/
 [orcid peer reviews]: https://support.orcid.org/hc/en-us/articles/360006971333-Peer-Reviews

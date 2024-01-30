@@ -4,19 +4,26 @@ import IoRedis from 'ioredis'
 
 export type Redis = IoRedis.Redis
 
+export interface RedisConfig {
+  readonly url: URL
+}
+
 export const Redis = Context.Tag<Redis>('IoRedis/Redis')
+
+export const RedisConfig = Context.Tag<RedisConfig>()
 
 export class RedisError extends Data.TaggedError('RedisError')<{
   readonly error: unknown
 }> {}
 
-export const layer: Layer.Layer<never, never, Redis> = Layer.scoped(
+export const layer: Layer.Layer<RedisConfig, never, Redis> = Layer.scoped(
   Redis,
   Effect.acquireRelease(
     Effect.gen(function* (_) {
+      const config = yield* _(RedisConfig)
       const runtime = yield* _(Effect.runtime<never>())
 
-      const redis = new IoRedis.Redis()
+      const redis = new IoRedis.Redis(config.url.href)
 
       redis.on('connect', () => Runtime.runSync(runtime)(Effect.logDebug('Redis connected')))
       redis.on('close', () => Runtime.runSync(runtime)(Effect.logDebug('Redis connection closed')))

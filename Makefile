@@ -4,6 +4,9 @@ node_modules: package.json package-lock.json
 	npm install
 	touch node_modules
 
+.env:
+	cp .env.dist .env
+
 check: format lint test typecheck
 
 fix: node_modules
@@ -22,5 +25,5 @@ typecheck: node_modules
 test: node_modules
 	npx vitest run
 
-start: node_modules
-	npx tsx src
+start: .env node_modules
+	npx tsx --require dotenv/config src
