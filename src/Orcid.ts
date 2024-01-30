@@ -138,7 +138,7 @@ const NewPeerReviewSchema = Schema.struct({
     'external-id-relationship': Schema.literal('self'),
   }),
   'subject-container-name': Schema.optional(Schema.string),
-  'subject-type': Schema.optional(Schema.literal('other')),
+  'subject-type': Schema.optional(Schema.literal('preprint')),
   'subject-name': Schema.optional(Schema.struct({ title: Schema.string })),
   'subject-url': Url.UrlSchema,
   'convening-organization': Schema.struct({

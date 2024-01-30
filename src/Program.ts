@@ -56,6 +56,7 @@ const addPeerReview = ({ orcid, review }: { orcid: OrcidId.OrcidId; review: Zeno
         'external-id-value': review.preprintDoi,
         'external-id-relationship': 'self',
       },
+      'subject-type': 'preprint',
       'subject-url': Doi.toUrl(review.preprintDoi),
       'convening-organization': {
         name: 'PREreview',
