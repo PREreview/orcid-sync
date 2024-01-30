@@ -1,6 +1,6 @@
 import { HttpClient } from '@effect/platform-node'
 import { type ParseResult, Schema } from '@effect/schema'
-import { Effect, type ReadonlyRecord } from 'effect'
+import { Context, Effect, type ReadonlyRecord } from 'effect'
 import { DoiSchema } from './Doi.js'
 import type * as OrcidId from './OrcidId.js'
 import * as Temporal from './Temporal.js'
@@ -9,6 +9,12 @@ import * as Url from './Url.js'
 type Records = Schema.Schema.To<typeof RecordsSchema>['hits']
 
 type GetRecordsForOrcidIdError = HttpClient.error.HttpClientError | ParseResult.ParseError
+
+export interface ZenodoConfig {
+  readonly url: URL
+}
+
+export const ZenodoConfig = Context.Tag<ZenodoConfig>()
 
 export const getReviewsByOrcidId = (orcid: OrcidId.OrcidId) =>
   getRecords({
@@ -22,7 +28,7 @@ export const getReviewsByOrcidId = (orcid: OrcidId.OrcidId) =>
 
 const getRecords = (
   params: ReadonlyRecord.ReadonlyRecord<string>,
-): Effect.Effect<HttpClient.client.Client.Default, GetRecordsForOrcidIdError, Records> =>
+): Effect.Effect<ZenodoConfig | HttpClient.client.Client.Default, GetRecordsForOrcidIdError, Records> =>
   Effect.gen(function* (_) {
     const client = yield* _(zenodoClient)
 
@@ -64,11 +70,12 @@ const RecordsSchema = Schema.struct({
 })
 
 const zenodoClient = Effect.gen(function* (_) {
+  const config = yield* _(ZenodoConfig)
   const httpClient = yield* _(HttpClient.client.Client)
 
   return httpClient.pipe(
     HttpClient.client.filterStatusOk,
     HttpClient.client.mapRequest(HttpClient.request.acceptJson),
-    HttpClient.client.mapRequest(HttpClient.request.prependUrl('https://sandbox.zenodo.org/api/')),
+    HttpClient.client.mapRequest(HttpClient.request.prependUrl(new URL('/api/', config.url).href)),
   )
 })

@@ -32,7 +32,7 @@ const HttpClientLive = Layer.succeed(
 
 const RedisLive = Redis.layer
 
-const ProgramLive = Layer.mergeAll(HttpClientLive, RedisLive).pipe(Layer.provide(ConfigLive))
+const ProgramLive = Layer.mergeAll(HttpClientLive, RedisLive).pipe(Layer.provideMerge(ConfigLive))
 
 const runnable = Effect.provide(program, ProgramLive).pipe(Logger.withMinimumLogLevel(LogLevel.Debug))
 
