@@ -19,9 +19,19 @@ type GetPeerReviewsForOrcidIdError = HttpClient.error.HttpClientError | ParseRes
 type AddPeerReviewToOrcidIdError = HttpClient.error.HttpClientError | HttpClient.body.BodyError
 type DeletePeerReviewError = HttpClient.error.HttpClientError
 
+export interface OrcidConfig {
+  readonly url: URL
+}
+
+export const OrcidConfig = Context.Tag<OrcidConfig>()
+
 export const getPeerReviewsForOrcidId = (
   id: OrcidId,
-): Effect.Effect<HttpClient.client.Client.Default | OrcidAccessToken, GetPeerReviewsForOrcidIdError, PeerReviews> =>
+): Effect.Effect<
+  OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken,
+  GetPeerReviewsForOrcidIdError,
+  PeerReviews
+> =>
   Effect.gen(function* (_) {
     const client = yield* _(orcidClient)
 
@@ -40,7 +50,11 @@ export const addPeerReviewToOrcidId = ({
 }: {
   id: OrcidId
   peerReview: NewPeerReview
-}): Effect.Effect<HttpClient.client.Client.Default | OrcidAccessToken, AddPeerReviewToOrcidIdError, void> =>
+}): Effect.Effect<
+  OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken,
+  AddPeerReviewToOrcidIdError,
+  void
+> =>
   Effect.gen(function* (_) {
     const client = yield* _(orcidClient)
 
@@ -57,7 +71,7 @@ export const deletePeerReview = ({
 }: {
   orcid: OrcidId
   id: number
-}): Effect.Effect<HttpClient.client.Client.Default | OrcidAccessToken, DeletePeerReviewError, void> =>
+}): Effect.Effect<OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken, DeletePeerReviewError, void> =>
   Effect.gen(function* (_) {
     const client = yield* _(orcidClient)
 
@@ -137,13 +151,14 @@ const NewPeerReviewSchema = Schema.struct({
 })
 
 const orcidClient = Effect.gen(function* (_) {
+  const config = yield* _(OrcidConfig)
   const httpClient = yield* _(HttpClient.client.Client)
   const { token } = yield* _(OrcidAccessToken)
 
   return httpClient.pipe(
     HttpClient.client.filterStatusOk,
     HttpClient.client.mapRequest(HttpClient.request.accept('application/vnd.orcid+json')),
-    HttpClient.client.mapRequest(HttpClient.request.prependUrl('https://api.sandbox.orcid.org/v3.0/')),
+    HttpClient.client.mapRequest(HttpClient.request.prependUrl(new URL('/v3.0/', config.url).href)),
     HttpClient.client.mapRequest(HttpClient.request.bearerToken(token)),
   )
 })
