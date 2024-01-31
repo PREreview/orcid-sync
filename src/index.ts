@@ -1,6 +1,7 @@
 import { HttpClient } from '@effect/platform-node'
 import { Effect, Layer, LogLevel, Logger } from 'effect'
 import { ConfigLive } from './Config.js'
+import { SimpleLogger } from './Logger.js'
 import { program } from './Program.js'
 import * as Redis from './Redis.js'
 
@@ -32,8 +33,13 @@ const HttpClientLive = Layer.succeed(
 
 const RedisLive = Redis.layer
 
-const ProgramLive = Layer.mergeAll(HttpClientLive, RedisLive).pipe(Layer.provideMerge(ConfigLive))
+const ProgramLive = Layer.mergeAll(HttpClientLive, RedisLive).pipe(
+  Layer.provideMerge(ConfigLive),
+  Layer.provide(
+    Layer.mergeAll(Logger.replace(Logger.defaultLogger, SimpleLogger), Logger.minimumLogLevel(LogLevel.Debug)),
+  ),
+)
 
-const runnable = Effect.provide(program, ProgramLive).pipe(Logger.withMinimumLogLevel(LogLevel.Debug))
+const runnable = Effect.provide(program, ProgramLive)
 
 await Effect.runPromise(runnable)
