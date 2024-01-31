@@ -1,6 +1,5 @@
 import chalk from 'chalk'
-import { Cause, LogSpan } from 'effect'
-import * as Logger from 'effect/Logger'
+import { Cause, LogSpan, Logger } from 'effect'
 
 export const SimpleLogger: Logger.Logger<unknown, void> = Logger.make(
   ({ annotations, cause, date, logLevel, message, spans }) => {
@@ -14,7 +13,7 @@ export const SimpleLogger: Logger.Logger<unknown, void> = Logger.make(
       outputArray.push(quote(stringMessage))
     }
 
-    if (cause != null && cause._tag !== 'Empty') {
+    if (!Cause.isEmptyType(cause)) {
       outputArray.push(Cause.pretty(cause))
     }
 
