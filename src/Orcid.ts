@@ -1,4 +1,4 @@
-import { HttpClient } from '@effect/platform-node'
+import { HttpClient } from '@effect/platform'
 import { type ParseResult, Schema } from '@effect/schema'
 import { Context, Effect } from 'effect'
 import { DoiSchema } from './Doi.js'
@@ -10,7 +10,7 @@ export interface OrcidAccessToken {
   readonly token: string
 }
 
-export const OrcidAccessToken = Context.Tag<OrcidAccessToken>()
+export const OrcidAccessToken = Context.GenericTag<OrcidAccessToken>('OrcidAccessToken')
 
 type PeerReviews = Schema.Schema.To<typeof PeerReviewsSchema>['group']
 type NewPeerReview = Schema.Schema.To<typeof NewPeerReviewSchema>
@@ -23,14 +23,14 @@ export interface OrcidConfig {
   readonly url: URL
 }
 
-export const OrcidConfig = Context.Tag<OrcidConfig>()
+export const OrcidConfig = Context.GenericTag<OrcidConfig>('OrcidConfig')
 
 export const getPeerReviewsForOrcidId = (
   id: OrcidId,
 ): Effect.Effect<
-  OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken,
+  PeerReviews,
   GetPeerReviewsForOrcidIdError,
-  PeerReviews
+  OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken
 > =>
   Effect.gen(function* (_) {
     const client = yield* _(orcidClient)
@@ -51,9 +51,9 @@ export const addPeerReviewToOrcidId = ({
   id: OrcidId
   peerReview: NewPeerReview
 }): Effect.Effect<
-  OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken,
+  void,
   AddPeerReviewToOrcidIdError,
-  void
+  OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken
 > =>
   Effect.gen(function* (_) {
     const client = yield* _(orcidClient)
@@ -71,7 +71,7 @@ export const deletePeerReview = ({
 }: {
   orcid: OrcidId
   id: number
-}): Effect.Effect<OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken, DeletePeerReviewError, void> =>
+}): Effect.Effect<void, DeletePeerReviewError, OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken> =>
   Effect.gen(function* (_) {
     const client = yield* _(orcidClient)
 

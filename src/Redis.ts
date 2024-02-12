@@ -8,15 +8,15 @@ export interface RedisConfig {
   readonly url: URL
 }
 
-export const Redis = Context.Tag<Redis>('IoRedis/Redis')
+export const Redis = Context.GenericTag<Redis>('IoRedis/Redis')
 
-export const RedisConfig = Context.Tag<RedisConfig>()
+export const RedisConfig = Context.GenericTag<RedisConfig>('RedisConfig')
 
 export class RedisError extends Data.TaggedError('RedisError')<{
   readonly error: unknown
 }> {}
 
-export const layer: Layer.Layer<RedisConfig, never, Redis> = Layer.scoped(
+export const layer: Layer.Layer<Redis, never, RedisConfig> = Layer.scoped(
   Redis,
   Effect.acquireRelease(
     Effect.gen(function* (_) {
@@ -43,7 +43,7 @@ export const layer: Layer.Layer<RedisConfig, never, Redis> = Layer.scoped(
 
 export const scanStream = (
   options: Parameters<Redis['scanStream']>[0],
-): Stream.Stream<Redis, RedisError, Chunk.Chunk<string>> =>
+): Stream.Stream<Chunk.Chunk<string>, RedisError, Redis> =>
   Stream.unwrap(
     Effect.gen(function* (_) {
       const redis = yield* _(Redis)
@@ -52,7 +52,7 @@ export const scanStream = (
     }),
   ).pipe(Stream.map(Schema.decodeSync(Schema.array(Schema.string))), Stream.map(Chunk.fromIterable))
 
-export const get = (key: IoRedis.RedisKey): Effect.Effect<Redis, RedisError, Option.Option<string>> =>
+export const get = (key: IoRedis.RedisKey): Effect.Effect<Option.Option<string>, RedisError, Redis> =>
   Effect.gen(function* (_) {
     const redis = yield* _(Redis)
 
