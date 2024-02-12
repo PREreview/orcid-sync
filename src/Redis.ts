@@ -21,7 +21,7 @@ export const layer: Layer.Layer<Redis, never, RedisConfig> = Layer.scoped(
   Effect.acquireRelease(
     Effect.gen(function* (_) {
       const config = yield* _(RedisConfig)
-      const runtime = yield* _(Effect.runtime<never>())
+      const runtime = yield* _(Effect.runtime())
 
       const redis = new IoRedis.Redis(config.url.href)
 
