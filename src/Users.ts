@@ -3,7 +3,7 @@ import { type Cause, Data, Effect, ReadonlyArray, Stream, String, flow } from 'e
 import * as OrcidId from './OrcidId.js'
 import * as Redis from './Redis.js'
 
-export interface User extends Data.Case {
+export interface User {
   readonly orcidId: OrcidId.OrcidId
   readonly accessToken: string
 }
@@ -11,9 +11,9 @@ export interface User extends Data.Case {
 export const User = Data.case<User>()
 
 export const getUsers: Stream.Stream<
-  Redis.Redis,
+  User,
   Redis.RedisError | ParseResult.ParseError | Cause.NoSuchElementException,
-  User
+  Redis.Redis
 > = Redis.scanStream({
   match: 'orcid-token:*',
 }).pipe(

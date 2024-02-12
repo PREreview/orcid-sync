@@ -7,9 +7,9 @@ export const { PlainDate } = Temporal
 
 export const PlainDateFromSelfSchema = Schema.instanceOf(Temporal.PlainDate)
 
-export const PlainDateFromStringSchema = <R, I, A extends string>(
-  self: Schema.Schema<R, I, A>,
-): Schema.Schema<R, I, Temporal.PlainDate> =>
+export const PlainDateFromStringSchema = <A extends string, I, R>(
+  self: Schema.Schema<A, I, R>,
+): Schema.Schema<Temporal.PlainDate, I, R> =>
   Schema.transformOrFail(
     self,
     PlainDateFromSelfSchema,
