@@ -28,12 +28,12 @@
     "vitest": "^1.2.2"
   },
   "dependencies": {
-    "@effect/platform": "^0.44.4",
+    "@effect/platform": "^0.45.1",
     "@effect/schema": "^0.62.1",
     "@js-temporal/polyfill": "^0.4.4",
     "chalk": "^5.3.0",
     "doi-regex": "^0.1.13",
-    "effect": "2.3.3",
+    "effect": "2.3.5",
     "ioredis": "^5.3.2",
     "orcid-utils": "^1.2.2"
   }
