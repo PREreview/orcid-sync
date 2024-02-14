@@ -17,4 +17,4 @@ COPY . /app
 
 WORKDIR /app
 
-CMD [ "supercronic", "/app/crontab" ]
+CMD [ "supercronic", "-json", "-passthrough-logs", "/app/crontab" ]
