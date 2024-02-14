@@ -11,7 +11,8 @@ const getPeerReviewsForOrcidId = flow(
   (user: Users.User) => Orcid.getPeerReviewsForOrcidId(user.orcidId),
   Effect.flatMap(
     ReadonlyArray.findFirst(
-      group => group['external-ids']['external-id'][0]['external-id-value'] === 'orcid-generated:prereview',
+      (group): group is Orcid.PrereviewGroupSchema =>
+        group['external-ids']['external-id'][0]['external-id-value'] === 'orcid-generated:prereview',
     ),
   ),
   Effect.map(group =>

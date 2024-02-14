@@ -78,36 +78,48 @@ export const deletePeerReview = ({
     yield* _(HttpClient.request.del(`${orcid}/peer-review/${id}`), client)
   })
 
-const PeerReviewsSchema = Schema.struct({
-  group: Schema.array(
+const PrereviewGroupSchema = Schema.struct({
+  'external-ids': Schema.struct({
+    'external-id': Schema.tuple(
+      Schema.struct({
+        'external-id-type': Schema.literal('peer-review'),
+        'external-id-value': Schema.literal('orcid-generated:prereview'),
+      }),
+    ),
+  }),
+  'peer-review-group': Schema.array(
     Schema.struct({
       'external-ids': Schema.struct({
         'external-id': Schema.tuple(
           Schema.struct({
-            'external-id-type': Schema.literal('peer-review'),
-            'external-id-value': Schema.string,
+            'external-id-type': Schema.literal('doi'),
+            'external-id-value': DoiSchema,
           }),
         ),
       }),
-      'peer-review-group': Schema.array(
+      'peer-review-summary': Schema.tuple(
         Schema.struct({
-          'external-ids': Schema.struct({
-            'external-id': Schema.tuple(
-              Schema.struct({
-                'external-id-type': Schema.literal('doi'),
-                'external-id-value': DoiSchema,
-              }),
-            ),
-          }),
-          'peer-review-summary': Schema.tuple(
-            Schema.struct({
-              'put-code': Schema.number,
-            }),
-          ),
+          'put-code': Schema.number,
         }),
       ),
     }),
   ),
+})
+
+export type PrereviewGroupSchema = Schema.Schema.To<typeof PrereviewGroupSchema>
+
+const OtherPeerReviewGroupSchema = Schema.struct({
+  'external-ids': Schema.struct({
+    'external-id': Schema.tuple(
+      Schema.struct({
+        'external-id-value': Schema.string,
+      }),
+    ),
+  }),
+})
+
+const PeerReviewsSchema = Schema.struct({
+  group: Schema.array(Schema.union(PrereviewGroupSchema, OtherPeerReviewGroupSchema)),
 })
 
 const NewPeerReviewSchema = Schema.struct({
