@@ -1,6 +1,6 @@
 import { HttpClient } from '@effect/platform'
 import { type ParseResult, Schema } from '@effect/schema'
-import { Context, Effect, type ReadonlyRecord, Scope } from 'effect'
+import { Context, Effect, type ReadonlyRecord, type Scope } from 'effect'
 import { DoiSchema } from './Doi.js'
 import type * as OrcidId from './OrcidId.js'
 import * as Temporal from './Temporal.js'
