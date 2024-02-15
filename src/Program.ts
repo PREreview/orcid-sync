@@ -192,6 +192,7 @@ const processUser = (user: Users.User) =>
   }).pipe(
     Effect.annotateLogs('orcidId', user.orcidId),
     Effect.provideService(Orcid.OrcidAccessToken, { token: user.accessToken }),
+    Effect.scoped,
   )
 
 export const program = Users.getUsers.pipe(Stream.runForEach(processUser))

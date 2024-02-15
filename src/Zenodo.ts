@@ -1,6 +1,6 @@
 import { HttpClient } from '@effect/platform'
 import { type ParseResult, Schema } from '@effect/schema'
-import { Context, Effect, type ReadonlyRecord } from 'effect'
+import { Context, Effect, type ReadonlyRecord, Scope } from 'effect'
 import { DoiSchema } from './Doi.js'
 import type * as OrcidId from './OrcidId.js'
 import * as Temporal from './Temporal.js'
@@ -28,7 +28,7 @@ export const getReviewsByOrcidId = (orcid: OrcidId.OrcidId) =>
 
 const getRecords = (
   params: ReadonlyRecord.ReadonlyRecord<string>,
-): Effect.Effect<Records, GetRecordsForOrcidIdError, ZenodoConfig | HttpClient.client.Client.Default> =>
+): Effect.Effect<Records, GetRecordsForOrcidIdError, ZenodoConfig | HttpClient.client.Client.Default | Scope.Scope> =>
   Effect.gen(function* (_) {
     const client = yield* _(zenodoClient)
 
