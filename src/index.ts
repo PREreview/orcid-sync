@@ -1,5 +1,5 @@
 import { HttpClient } from '@effect/platform'
-import { Effect, Layer, LogLevel, Logger, ReadonlyRecord } from 'effect'
+import { Effect, Layer, LogLevel, Logger } from 'effect'
 import { ConfigLive } from './Config.js'
 import { SimpleLogger } from './Logger.js'
 import { program } from './Program.js'
@@ -11,7 +11,7 @@ const HttpClientLive = Layer.succeed(
     Effect.Do.pipe(
       Effect.tap(() =>
         Effect.logDebug('Sending HTTP Request').pipe(
-          Effect.annotateLogs({ headers: ReadonlyRecord.replace(request.headers, 'authorization', '<redacted>') }),
+          Effect.annotateLogs({ headers: HttpClient.headers.redact(request.headers, 'authorization') }),
         ),
       ),
       Effect.zipRight(HttpClient.client.fetch()(request)),
