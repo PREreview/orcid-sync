@@ -27,7 +27,7 @@ export const getReviewsByOrcidId = (orcid: OrcidId.OrcidId) =>
   })
 
 const getRecords = (
-  params: ReadonlyRecord.ReadonlyRecord<string>,
+  params: ReadonlyRecord.ReadonlyRecord<string, string>,
 ): Effect.Effect<Records, GetRecordsForOrcidIdError, ZenodoConfig | HttpClient.client.Client.Default | Scope.Scope> =>
   Effect.gen(function* (_) {
     const client = yield* _(zenodoClient)
