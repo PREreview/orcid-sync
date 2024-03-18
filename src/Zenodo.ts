@@ -6,7 +6,7 @@ import type * as OrcidId from './OrcidId.js'
 import * as Temporal from './Temporal.js'
 import * as Url from './Url.js'
 
-type Records = Schema.Schema.To<typeof RecordsSchema>['hits']
+type Records = Schema.Schema.Type<typeof RecordsSchema>['hits']
 
 type GetRecordsForOrcidIdError = HttpClient.error.HttpClientError | ParseResult.ParseError
 
