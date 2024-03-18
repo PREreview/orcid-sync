@@ -12,8 +12,8 @@ export interface OrcidAccessToken {
 
 export const OrcidAccessToken = Context.GenericTag<OrcidAccessToken>('OrcidAccessToken')
 
-type PeerReviews = Schema.Schema.To<typeof PeerReviewsSchema>['group']
-type NewPeerReview = Schema.Schema.To<typeof NewPeerReviewSchema>
+type PeerReviews = Schema.Schema.Type<typeof PeerReviewsSchema>['group']
+type NewPeerReview = Schema.Schema.Type<typeof NewPeerReviewSchema>
 
 type GetPeerReviewsForOrcidIdError = HttpClient.error.HttpClientError | ParseResult.ParseError
 type AddPeerReviewToOrcidIdError = HttpClient.error.HttpClientError | HttpClient.body.BodyError
@@ -110,7 +110,7 @@ const PrereviewGroupSchema = Schema.struct({
   ),
 })
 
-export type PrereviewGroupSchema = Schema.Schema.To<typeof PrereviewGroupSchema>
+export type PrereviewGroupSchema = Schema.Schema.Type<typeof PrereviewGroupSchema>
 
 const OtherPeerReviewGroupSchema = Schema.struct({
   'external-ids': Schema.struct({

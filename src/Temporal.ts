@@ -16,7 +16,7 @@ export const PlainDateFromStringSchema = <A extends string, I, R>(
     (s, _, ast) =>
       ParseResult.try({
         try: () => Temporal.PlainDate.from(s),
-        catch: () => ParseResult.type(ast, s),
+        catch: () => new ParseResult.Type(ast, s),
       }),
     plainDate => ParseResult.succeed(plainDate.toString()),
     { strict: false },
