@@ -1,6 +1,6 @@
 import { HttpClient } from '@effect/platform'
 import { type ParseResult, Schema } from '@effect/schema'
-import { Context, Effect, type Scope } from 'effect'
+import { Context, Effect } from 'effect'
 import { DoiSchema } from './Doi.js'
 import type { OrcidId } from './OrcidId.js'
 import * as Temporal from './Temporal.js'
@@ -30,7 +30,7 @@ export const getPeerReviewsForOrcidId = (
 ): Effect.Effect<
   PeerReviews,
   GetPeerReviewsForOrcidIdError,
-  OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken | Scope.Scope
+  OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken
 > =>
   Effect.gen(function* (_) {
     const client = yield* _(orcidClient)
@@ -39,6 +39,7 @@ export const getPeerReviewsForOrcidId = (
       HttpClient.request.get(`${id}/peer-reviews`),
       client,
       Effect.flatMap(HttpClient.response.schemaBodyJson(PeerReviewsSchema)),
+      Effect.scoped,
     )
 
     return response.group
@@ -53,7 +54,7 @@ export const addPeerReviewToOrcidId = ({
 }): Effect.Effect<
   void,
   AddPeerReviewToOrcidIdError,
-  OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken | Scope.Scope
+  OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken
 > =>
   Effect.gen(function* (_) {
     const client = yield* _(orcidClient)
@@ -62,6 +63,7 @@ export const addPeerReviewToOrcidId = ({
       HttpClient.request.post(`${id}/peer-review`, { headers: { 'Content-Type': 'application/vnd.orcid+json' } }),
       HttpClient.request.schemaBody(NewPeerReviewSchema)(peerReview),
       Effect.flatMap(client),
+      Effect.scoped,
     )
   })
 
@@ -71,15 +73,11 @@ export const deletePeerReview = ({
 }: {
   orcid: OrcidId
   id: number
-}): Effect.Effect<
-  void,
-  DeletePeerReviewError,
-  OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken | Scope.Scope
-> =>
+}): Effect.Effect<void, DeletePeerReviewError, OrcidConfig | HttpClient.client.Client.Default | OrcidAccessToken> =>
   Effect.gen(function* (_) {
     const client = yield* _(orcidClient)
 
-    yield* _(HttpClient.request.del(`${orcid}/peer-review/${id}`), client)
+    yield* _(HttpClient.request.del(`${orcid}/peer-review/${id}`), client, Effect.scoped)
   })
 
 const PrereviewGroupSchema = Schema.struct({
