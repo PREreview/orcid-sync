@@ -42,31 +42,31 @@ const getRecords = (
     return response.hits
   })
 
-const RecordsSchema = Schema.struct({
-  hits: Schema.struct({
-    hits: Schema.array(
-      Schema.struct({
+const RecordsSchema = Schema.Struct({
+  hits: Schema.Struct({
+    hits: Schema.Array(
+      Schema.Struct({
         doi: DoiSchema,
-        metadata: Schema.struct({
+        metadata: Schema.Struct({
           publication_date: Temporal.PlainDateSchema,
-          related_identifiers: Schema.array(
-            Schema.union(
-              Schema.struct({
+          related_identifiers: Schema.Array(
+            Schema.Union(
+              Schema.Struct({
                 identifier: DoiSchema,
-                relation: Schema.string,
-                scheme: Schema.literal('doi'),
+                relation: Schema.String,
+                scheme: Schema.Literal('doi'),
               }),
-              Schema.struct({
+              Schema.Struct({
                 identifier: Url.UrlSchema,
-                relation: Schema.string,
-                scheme: Schema.literal('url'),
+                relation: Schema.String,
+                scheme: Schema.Literal('url'),
               }),
             ),
           ),
         }),
       }),
     ),
-    total: Schema.nonNegative()(Schema.number),
+    total: Schema.nonNegative()(Schema.Number),
   }),
 })
 

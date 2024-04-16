@@ -9,7 +9,7 @@ export const isDoi: Predicate.Refinement<unknown, Doi> = (u): u is Doi =>
 
 export const Doi = Brand.refined<Doi>(isDoi, s => Brand.error(`Expected ${s} to be a DOI`))
 
-export const DoiSchema = Schema.string.pipe(Schema.fromBrand(Doi))
+export const DoiSchema = Schema.String.pipe(Schema.fromBrand(Doi))
 
 export const toUrl: (doi: Doi) => URL = doi => {
   const url = new URL('https://doi.org')
