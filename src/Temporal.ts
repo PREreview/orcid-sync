@@ -10,16 +10,14 @@ export const PlainDateFromSelfSchema = Schema.instanceOf(Temporal.PlainDate)
 export const PlainDateFromStringSchema = <A extends string, I, R>(
   self: Schema.Schema<A, I, R>,
 ): Schema.Schema<Temporal.PlainDate, I, R> =>
-  Schema.transformOrFail(
-    self,
-    PlainDateFromSelfSchema,
-    (s, _, ast) =>
+  Schema.transformOrFail(self, PlainDateFromSelfSchema, {
+    decode: (s, _, ast) =>
       ParseResult.try({
         try: () => Temporal.PlainDate.from(s),
         catch: () => new ParseResult.Type(ast, s),
       }),
-    plainDate => ParseResult.succeed(plainDate.toString()),
-    { strict: false },
-  )
+    encode: plainDate => ParseResult.succeed(plainDate.toString()),
+    strict: false,
+  })
 
-export const PlainDateSchema = PlainDateFromStringSchema(Schema.string)
+export const PlainDateSchema = PlainDateFromStringSchema(Schema.String)

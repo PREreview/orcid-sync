@@ -80,28 +80,28 @@ export const deletePeerReview = ({
     yield* _(HttpClient.request.del(`${orcid}/peer-review/${id}`), client, Effect.scoped)
   })
 
-const PrereviewGroupSchema = Schema.struct({
-  'external-ids': Schema.struct({
-    'external-id': Schema.tuple(
-      Schema.struct({
-        'external-id-type': Schema.literal('peer-review'),
-        'external-id-value': Schema.literal('orcid-generated:prereview'),
+const PrereviewGroupSchema = Schema.Struct({
+  'external-ids': Schema.Struct({
+    'external-id': Schema.Tuple(
+      Schema.Struct({
+        'external-id-type': Schema.Literal('peer-review'),
+        'external-id-value': Schema.Literal('orcid-generated:prereview'),
       }),
     ),
   }),
-  'peer-review-group': Schema.array(
-    Schema.struct({
-      'external-ids': Schema.struct({
-        'external-id': Schema.tuple(
-          Schema.struct({
-            'external-id-type': Schema.literal('doi'),
+  'peer-review-group': Schema.Array(
+    Schema.Struct({
+      'external-ids': Schema.Struct({
+        'external-id': Schema.Tuple(
+          Schema.Struct({
+            'external-id-type': Schema.Literal('doi'),
             'external-id-value': DoiSchema,
           }),
         ),
       }),
-      'peer-review-summary': Schema.tuple(
-        Schema.struct({
-          'put-code': Schema.number,
+      'peer-review-summary': Schema.Tuple(
+        Schema.Struct({
+          'put-code': Schema.Number,
         }),
       ),
     }),
@@ -110,56 +110,58 @@ const PrereviewGroupSchema = Schema.struct({
 
 export type PrereviewGroupSchema = Schema.Schema.Type<typeof PrereviewGroupSchema>
 
-const OtherPeerReviewGroupSchema = Schema.struct({
-  'external-ids': Schema.struct({
-    'external-id': Schema.tuple(
-      Schema.struct({
-        'external-id-value': Schema.string,
+const OtherPeerReviewGroupSchema = Schema.Struct({
+  'external-ids': Schema.Struct({
+    'external-id': Schema.Tuple(
+      Schema.Struct({
+        'external-id-value': Schema.String,
       }),
     ),
   }),
 })
 
-const PeerReviewsSchema = Schema.struct({
-  group: Schema.array(Schema.union(PrereviewGroupSchema, OtherPeerReviewGroupSchema)),
+const PeerReviewsSchema = Schema.Struct({
+  group: Schema.Array(Schema.Union(PrereviewGroupSchema, OtherPeerReviewGroupSchema)),
 })
 
-const NewPeerReviewSchema = Schema.struct({
-  'reviewer-role': Schema.literal('reviewer'),
-  'review-identifiers': Schema.struct({
-    'external-id': Schema.struct({
-      'external-id-type': Schema.literal('doi'),
+const NewPeerReviewSchema = Schema.Struct({
+  'reviewer-role': Schema.Literal('reviewer'),
+  'review-identifiers': Schema.Struct({
+    'external-id': Schema.Struct({
+      'external-id-type': Schema.Literal('doi'),
       'external-id-value': DoiSchema,
-      'external-id-relationship': Schema.literal('self'),
+      'external-id-relationship': Schema.Literal('self'),
     }),
   }),
   'review-url': Url.UrlSchema,
-  'review-type': Schema.literal('review'),
+  'review-type': Schema.Literal('review'),
   'review-completion-date': Schema.transform(
-    Schema.struct({
+    Schema.Struct({
       year: Schema.NumberFromString,
       month: Schema.NumberFromString,
       day: Schema.NumberFromString,
     }),
     Temporal.PlainDateFromSelfSchema,
-    ({ year, month, day }) => Temporal.PlainDate.from({ year, month, day }),
-    date => ({ year: date.year, month: date.month, day: date.day }),
+    {
+      decode: ({ year, month, day }) => Temporal.PlainDate.from({ year, month, day }),
+      encode: date => ({ year: date.year, month: date.month, day: date.day }),
+    },
   ),
-  'review-group-id': Schema.literal('orcid-generated:prereview'),
-  'subject-external-identifier': Schema.struct({
-    'external-id-type': Schema.literal('doi'),
+  'review-group-id': Schema.Literal('orcid-generated:prereview'),
+  'subject-external-identifier': Schema.Struct({
+    'external-id-type': Schema.Literal('doi'),
     'external-id-value': DoiSchema,
-    'external-id-relationship': Schema.literal('self'),
+    'external-id-relationship': Schema.Literal('self'),
   }),
-  'subject-container-name': Schema.optional(Schema.string),
-  'subject-type': Schema.optional(Schema.literal('preprint')),
-  'subject-name': Schema.optional(Schema.struct({ title: Schema.string })),
+  'subject-container-name': Schema.optional(Schema.String),
+  'subject-type': Schema.optional(Schema.Literal('preprint')),
+  'subject-name': Schema.optional(Schema.Struct({ title: Schema.String })),
   'subject-url': Url.UrlSchema,
-  'convening-organization': Schema.struct({
-    name: Schema.string,
-    address: Schema.struct({
-      city: Schema.string,
-      country: Schema.string,
+  'convening-organization': Schema.Struct({
+    name: Schema.String,
+    address: Schema.Struct({
+      city: Schema.String,
+      country: Schema.String,
     }),
   }),
 })

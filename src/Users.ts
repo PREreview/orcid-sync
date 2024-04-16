@@ -26,7 +26,7 @@ export const getUsers: Stream.Stream<
   Stream.map(User),
 )
 
-const OrcidTokenSchema = Schema.struct({ value: Schema.struct({ accessToken: Schema.string }) })
+const OrcidTokenSchema = Schema.Struct({ value: Schema.Struct({ accessToken: Schema.String }) })
 
 const getAccessToken = flow(
   (orcidId: OrcidId.OrcidId) => Effect.flatten(Redis.get(`orcid-token:${orcidId}`)),

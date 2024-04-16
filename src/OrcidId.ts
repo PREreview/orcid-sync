@@ -14,4 +14,4 @@ const isOrcid: Predicate.Refinement<unknown, OrcidId> = (u): u is OrcidId => {
 
 export const OrcidId = Brand.refined<OrcidId>(isOrcid, s => Brand.error(`Expected ${s} to be an ORCID iD`))
 
-export const OrcidIdSchema = Schema.string.pipe(Schema.fromBrand(OrcidId))
+export const OrcidIdSchema = Schema.String.pipe(Schema.fromBrand(OrcidId))

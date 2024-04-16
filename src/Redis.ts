@@ -50,7 +50,7 @@ export const scanStream = (
 
       return Stream.fromAsyncIterable(redis.scanStream(options), error => new RedisError({ error }))
     }),
-  ).pipe(Stream.map(Schema.decodeSync(Schema.array(Schema.string))), Stream.map(Chunk.fromIterable))
+  ).pipe(Stream.map(Schema.decodeSync(Schema.Array(Schema.String))), Stream.map(Chunk.fromIterable))
 
 export const get = (key: IoRedis.RedisKey): Effect.Effect<Option.Option<string>, RedisError, Redis> =>
   Effect.gen(function* (_) {
