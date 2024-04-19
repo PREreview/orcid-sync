@@ -1,4 +1,4 @@
-import { Effect, Match, Option, ReadonlyArray, Stream, flow } from 'effect'
+import { Array, Effect, Match, Option, Stream, flow } from 'effect'
 import * as Decision from './Decision.js'
 import * as Doi from './Doi.js'
 import * as Orcid from './Orcid.js'
@@ -10,13 +10,13 @@ import * as Zenodo from './Zenodo.js'
 const getPeerReviewsForOrcidId = flow(
   (user: Users.User) => Orcid.getPeerReviewsForOrcidId(user.orcidId),
   Effect.flatMap(
-    ReadonlyArray.findFirst(
+    Array.findFirst(
       (group): group is Orcid.PrereviewGroupSchema =>
         group['external-ids']['external-id'][0]['external-id-value'] === 'orcid-generated:prereview',
     ),
   ),
   Effect.map(group =>
-    ReadonlyArray.map(
+    Array.map(
       group['peer-review-group'],
       peerReview =>
         ({
@@ -80,12 +80,12 @@ const getPeerReviewsOnZenodoForOrcidId = flow(
     }),
   ),
   Effect.map(reviews =>
-    ReadonlyArray.map(
+    Array.map(
       reviews.hits,
       review =>
         ({
           doi: review.doi,
-          preprintDoi: ReadonlyArray.findFirst(
+          preprintDoi: Array.findFirst(
             review.metadata.related_identifiers,
             relatedIdentifier => relatedIdentifier.relation === 'reviews' && relatedIdentifier.scheme === 'doi',
           ).pipe(
@@ -119,11 +119,11 @@ const makeDecisions = ({
   zenodoReviews: ReadonlyArray<ZenodoReview>
   orcidReviews: ReadonlyArray<OrcidReview>
 }) =>
-  ReadonlyArray.union(
-    ReadonlyArray.filter(
+  Array.union(
+    Array.filter(
       zenodoReviews,
       zenodoReview =>
-        !ReadonlyArray.contains(
+        !Array.contains(
           orcidReviews.map(review => review.doi),
           zenodoReview.doi,
         ),
@@ -133,10 +133,10 @@ const makeDecisions = ({
         ...zenodoReview,
       }),
     ),
-    ReadonlyArray.filter(
+    Array.filter(
       orcidReviews,
       orcidReview =>
-        !ReadonlyArray.contains(
+        !Array.contains(
           zenodoReviews.map(review => review.doi),
           orcidReview.doi,
         ),
@@ -165,7 +165,7 @@ const processUser = (user: Users.User) =>
       ),
     )
 
-    if (ReadonlyArray.isEmptyArray(decisions)) {
+    if (Array.isEmptyArray(decisions)) {
       return yield* _(Effect.logInfo('Nothing to do'))
     }
 

@@ -1,5 +1,5 @@
 import { type ParseResult, Schema } from '@effect/schema'
-import { type Cause, Data, Effect, ReadonlyArray, Stream, String, flow } from 'effect'
+import { Array, type Cause, Data, Effect, Stream, String, flow } from 'effect'
 import * as OrcidId from './OrcidId.js'
 import * as Redis from './Redis.js'
 
@@ -19,7 +19,7 @@ export const getUsers: Stream.Stream<
 }).pipe(
   Stream.flattenChunks,
   Stream.map(String.split(':')),
-  Stream.map(ReadonlyArray.lastNonEmpty),
+  Stream.map(Array.lastNonEmpty),
   Stream.flatMap(Schema.decodeEither(OrcidId.OrcidIdSchema)),
   Stream.bindTo('orcidId'),
   Stream.bind('accessToken', ({ orcidId }) => getAccessToken(orcidId)),
