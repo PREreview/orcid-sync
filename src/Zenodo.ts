@@ -1,6 +1,6 @@
 import { HttpClient } from '@effect/platform'
 import { type ParseResult, Schema } from '@effect/schema'
-import { Context, Effect, type Record } from 'effect'
+import { Context, Effect, type RateLimiter, type Record } from 'effect'
 import { DoiSchema } from './Doi.js'
 import type * as OrcidId from './OrcidId.js'
 import * as Temporal from './Temporal.js'
@@ -12,6 +12,7 @@ type GetRecordsForOrcidIdError = HttpClient.error.HttpClientError | ParseResult.
 
 export interface ZenodoConfig {
   readonly url: URL
+  readonly rateLimit: RateLimiter.RateLimiter
 }
 
 export const ZenodoConfig = Context.GenericTag<ZenodoConfig>('ZenodoConfig')
@@ -78,5 +79,6 @@ const zenodoClient = Effect.gen(function* (_) {
     HttpClient.client.filterStatusOk,
     HttpClient.client.mapRequest(HttpClient.request.acceptJson),
     HttpClient.client.mapRequest(HttpClient.request.prependUrl(new URL('/api/', config.url).href)),
+    HttpClient.client.transform(config.rateLimit),
   )
 })

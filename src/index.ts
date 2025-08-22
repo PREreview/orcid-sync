@@ -44,6 +44,6 @@ const ProgramLive = Layer.mergeAll(HttpClientLive, RedisLive).pipe(
   ),
 )
 
-const runnable = Effect.provide(program, ProgramLive)
+const runnable = Effect.provide(program, ProgramLive).pipe(Effect.scoped)
 
 await Effect.runPromise(runnable)

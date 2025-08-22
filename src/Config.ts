@@ -1,4 +1,4 @@
-import { Config, Layer } from 'effect'
+import { Config, Effect, Layer, RateLimiter, pipe } from 'effect'
 import { OrcidConfig } from './Orcid.js'
 import { RedisConfig } from './Redis.js'
 import { ZenodoConfig } from './Zenodo.js'
@@ -17,7 +17,7 @@ const redisConfig: Config.Config<RedisConfig> = Config.nested(
   'REDIS',
 )
 
-const zenodoConfig: Config.Config<ZenodoConfig> = Config.nested(
+const zenodoConfig: Config.Config<Omit<ZenodoConfig, 'rateLimit'>> = Config.nested(
   Config.all({
     url: Config.mapAttempt(Config.string('URL'), url => new URL(url)),
   }),
@@ -27,5 +27,13 @@ const zenodoConfig: Config.Config<ZenodoConfig> = Config.nested(
 export const ConfigLive = Layer.mergeAll(
   Layer.effect(OrcidConfig, orcidConfig),
   Layer.effect(RedisConfig, redisConfig),
-  Layer.effect(ZenodoConfig, zenodoConfig),
+  Layer.effect(
+    ZenodoConfig,
+    pipe(
+      zenodoConfig,
+      Effect.bind('rateLimit', () =>
+        RateLimiter.make({ limit: 1, interval: '1.5 seconds', algorithm: 'fixed-window' }),
+      ),
+    ),
+  ),
 )
