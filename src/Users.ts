@@ -23,13 +23,25 @@ export const getUsers: Stream.Stream<
   Stream.flatMap(Schema.decodeEither(OrcidId.OrcidIdSchema)),
   Stream.bindTo('orcidId'),
   Stream.bind('accessToken', ({ orcidId }) => getAccessToken(orcidId)),
-  Stream.map(User),
+  Stream.filterEffect(({ accessToken, orcidId }) =>
+    Effect.if(accessToken.scopes.includes('/activities/update'), {
+      onTrue: () => Effect.succeed(true),
+      onFalse: () =>
+        Effect.succeed(false).pipe(
+          Effect.tap(Effect.logWarning('Skipping user')),
+          Effect.annotateLogs({ orcidId, scopes: accessToken.scopes }),
+        ),
+    }),
+  ),
+  Stream.map(({ accessToken: { accessToken }, orcidId }) => User({ accessToken, orcidId })),
 )
 
-const OrcidTokenSchema = Schema.Struct({ value: Schema.Struct({ accessToken: Schema.String }) })
+const OrcidTokenSchema = Schema.Struct({
+  value: Schema.Struct({ accessToken: Schema.String, scopes: Schema.Array(Schema.String) }),
+})
 
 const getAccessToken = flow(
   (orcidId: OrcidId.OrcidId) => Effect.flatten(Redis.get(`orcid-token:${orcidId}`)),
   Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(OrcidTokenSchema))),
-  Effect.map(({ value }) => value.accessToken),
+  Effect.map(({ value }) => value),
 )
