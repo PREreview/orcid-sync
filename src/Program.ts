@@ -65,6 +65,10 @@ const addPeerReview = ({ orcid, review }: { orcid: OrcidId.OrcidId; review: Zeno
           city: 'Portland',
           country: 'US',
         },
+        'disambiguated-organization': {
+          'disambiguated-organization-identifier': new URL('https://ror.org/00d496d44'),
+          'disambiguation-source': 'ROR',
+        },
       },
     },
   })

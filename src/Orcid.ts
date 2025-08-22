@@ -163,6 +163,12 @@ const NewPeerReviewSchema = Schema.Struct({
       city: Schema.String,
       country: Schema.String,
     }),
+    'disambiguated-organization': Schema.optional(
+      Schema.Struct({
+        'disambiguated-organization-identifier': Url.UrlSchema,
+        'disambiguation-source': Schema.Literal('ROR'),
+      }),
+    ),
   }),
 })
 
