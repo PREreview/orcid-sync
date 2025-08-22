@@ -1,4 +1,4 @@
-import { Array, Effect, Match, Option, Stream, flow } from 'effect'
+import { Array, Effect, Match, Metric, Option, Stream, flow } from 'effect'
 import * as Decision from './Decision.js'
 import * as Doi from './Doi.js'
 import * as Orcid from './Orcid.js'
@@ -152,14 +152,20 @@ const makeDecisions = ({
     ),
   )
 
+const numberOfOrcidUsers = Metric.withConstantInput(Metric.counter('orcidUsers', { incremental: true }), 1)
+const numberOfOrcidPeerReviews = Metric.counter('orcidPeerReviews', { incremental: true })
+
 const processUser = (user: Users.User) =>
   Effect.gen(function* (_) {
     yield* _(Effect.logInfo('Processing user'))
+    yield* _(Metric.increment(numberOfOrcidUsers))
 
     const decisions = yield* _(
       Effect.all(
         {
-          zenodoReviews: getPeerReviewsOnZenodoForOrcidId(user),
+          zenodoReviews: Effect.tap(getPeerReviewsOnZenodoForOrcidId(user), reviews =>
+            Metric.incrementBy(numberOfOrcidPeerReviews, reviews.length),
+          ),
           orcidReviews: getPeerReviewsForOrcidId(user),
         },
         { concurrency: 'inherit' },
@@ -200,4 +206,14 @@ const processUser = (user: Users.User) =>
     Effect.delay('1 second'),
   )
 
-export const program = Users.getUsers.pipe(Stream.runForEach(processUser))
+export const program = Users.getUsers.pipe(
+  Stream.runForEach(processUser),
+  Effect.tap(() =>
+    Effect.gen(function* (_) {
+      const users = yield* _(Metric.value(numberOfOrcidUsers))
+      const peerReviews = yield* _(Metric.value(numberOfOrcidPeerReviews))
+
+      yield* _(Effect.logInfo('Stats').pipe(Effect.annotateLogs({ users, peerReviews })))
+    }),
+  ),
+)
