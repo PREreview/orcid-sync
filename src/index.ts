@@ -40,7 +40,7 @@ const RedisLive = Redis.layer
 const ProgramLive = Layer.mergeAll(HttpClientLive, RedisLive).pipe(
   Layer.provideMerge(ConfigLive),
   Layer.provide(
-    Layer.mergeAll(Logger.replace(Logger.defaultLogger, SimpleLogger), Logger.minimumLogLevel(LogLevel.Debug)),
+    Layer.mergeAll(Logger.replace(Logger.defaultLogger, SimpleLogger), Logger.minimumLogLevel(LogLevel.Info)),
   ),
 )
 
