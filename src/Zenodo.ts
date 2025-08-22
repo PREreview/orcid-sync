@@ -19,7 +19,7 @@ export const ZenodoConfig = Context.GenericTag<ZenodoConfig>('ZenodoConfig')
 
 export const getReviewsByOrcidId = (orcid: OrcidId.OrcidId) =>
   getRecords({
-    q: `metadata.creators.person_or_org.identifiers.identifier:${orcid}`,
+    q: `metadata.creators.person_or_org.identifiers.identifier:${orcid} AND license.identifier:cc-by-4.0`,
     page: '1',
     size: '100',
     sort: 'publication-desc',
