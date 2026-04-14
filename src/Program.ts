@@ -1,4 +1,5 @@
-import { Array, Effect, Match, Metric, Option, Stream, flow } from 'effect'
+import { HttpClient } from '@effect/platform'
+import { Array, Effect, Equal, Match, Metric, Option, Predicate, Schedule, Stream, flow } from 'effect'
 import * as Decision from './Decision.js'
 import * as Doi from './Doi.js'
 import * as Orcid from './Orcid.js'
@@ -75,6 +76,17 @@ const addPeerReview = ({ orcid, review }: { orcid: OrcidId.OrcidId; review: Zeno
 
 const getPeerReviewsOnZenodoForOrcidId = flow(
   (user: Users.User) => Zenodo.getReviewsByOrcidId(user.orcidId),
+  Effect.retry({
+    while: Predicate.some([
+      error => error._tag === 'RequestError' && error.reason === 'Transport',
+      error =>
+        error._tag === 'ResponseError' &&
+        error.reason === 'StatusCode' &&
+        [429, 502, 503, 504].includes(error.response.status),
+    ]),
+    times: 2,
+    schedule: Schedule.fixed('500 millis'),
+  }),
   Effect.tap(reviews =>
     Effect.gen(function* (_) {
       if (reviews.total < 1) {
