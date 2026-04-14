@@ -20,6 +20,7 @@ const redisConfig: Config.Config<RedisConfig> = Config.nested(
 const zenodoConfig: Config.Config<Omit<ZenodoConfig, 'rateLimit'>> = Config.nested(
   Config.all({
     url: Config.mapAttempt(Config.string('URL'), url => new URL(url)),
+    apiKey: Config.secret('API_KEY'),
   }),
   'ZENODO',
 )
