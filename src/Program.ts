@@ -1,5 +1,4 @@
-import { HttpClient } from '@effect/platform'
-import { Array, Effect, Equal, Match, Metric, Option, Predicate, Schedule, Stream, flow } from 'effect'
+import { Array, Effect, Match, Metric, Option, Predicate, Schedule, Stream, flow } from 'effect'
 import * as Decision from './Decision.js'
 import * as Doi from './Doi.js'
 import * as Orcid from './Orcid.js'
