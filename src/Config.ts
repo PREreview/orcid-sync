@@ -31,9 +31,7 @@ export const ConfigLive = Layer.mergeAll(
     ZenodoConfig,
     pipe(
       zenodoConfig,
-      Effect.bind('rateLimit', () =>
-        RateLimiter.make({ limit: 1, interval: '1.5 seconds', algorithm: 'fixed-window' }),
-      ),
+      Effect.bind('rateLimit', () => RateLimiter.make({ limit: 1, interval: '15 seconds', algorithm: 'fixed-window' })),
     ),
   ),
 )
